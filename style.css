@@ -91,6 +91,8 @@ input {
   color: #000;
   max-height: 300px;
   overflow-x: hidden;
+  position: relative;
+  z-index: 2;
 }
 .dropdown__city {
   display: -webkit-box;
@@ -101,6 +103,7 @@ input {
   justify-content: space-between;
   padding: 5px 15px;
   cursor: pointer;
+  border-bottom: 2px solid #05263f;
 }
 .dropdown__city:hover {
   color: #d84d00;
