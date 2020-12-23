@@ -45,8 +45,7 @@ const getData = (url, callback) => {
   });
   //Выполнение запроса
   request.send();
-}
-
+};
 
 //Функция показа списка, чтобы не дублировать для второго поля. Вложим параметры, т.к они для разных полей разные сделаем их одинаковые 
 // а вызове функций для разных полей подставим параметры для каждого свои. И заменим в общей функции все поля вввода на параметы
@@ -78,6 +77,7 @@ const showCity = (input, list) => {
     });
   }
 };
+
 //Функция для вставки выбранного города, чьобы не дублировать код внизу
 const cityInInput = (event, inputIn, cityIn) => {
   const target = event.target;
@@ -86,8 +86,20 @@ const cityInInput = (event, inputIn, cityIn) => {
     inputIn.value = target.textContent;
     cityIn.textContent = ''
   }
-}
+};
 
+//Функция которая рендерит рейсы c данными рейса(data) и датой вылета (dateFly)
+const renderCheap = (data, dateFly) => {
+  //переменная получающая ценнник белетов из JSON на месяц
+  const cheapTicketYear = JSON.parse(data).best_prices;
+  console.log('cheapTicketYear: ', cheapTicketYear);
+  //Переменнная для фильтрации билетов на день
+  const cheapTicketDay = cheapTicketYear.filter((item) => {
+    //Сравниваем введенну дату и дату белетов
+    return item.depart_date === dateFly;
+  })
+  console.log('cheapTicketDay: ', cheapTicketDay);
+}
 //-----------СОБЫТИЯ------------------*/
 
 // Прослушиваем событие на inputCitiesFrom
@@ -126,7 +138,39 @@ dropdownCitiesTo.addEventListener('click', (event) => {
   // }
   cityInInput(event, inputCitiesTo, dropdownCitiesTo);
 });
-
+//
+formSearch.addEventListener('submit', (event) => {
+  //Отменяем стандартное событие. Для облегчения можно вместо (event) писать ({ target }), чтоб сразу получать target
+  event.preventDefault();
+  //Создадим переменную для сокращения записи Откуда летим
+  // Для получения кода города используем find, чтоб найти код в JSON городах
+  //Сокращенный вид записи
+  const cityFrom = city.find(item => inputCitiesFrom.value === item.name);
+  const cityTo = city.find((item) => { return (inputCitiesTo.value === item.name) });
+  //создаем объект с тем куда летим, откуда и когда
+  const formData = {
+    // from: city.find((item) => {
+    //   return (inputCitiesFrom.value === item.name).code
+    // }),
+    from: cityFrom.code,
+    to: cityTo.code,
+    when: inputDateDepart.value,
+  };
+  //переменная для создания запроса "?depart_date=2020-12-25&origin=SVX&destination=KGD&one_way=true&token="
+  const requestData = '?depart_date=' + formData.when +
+    '&origin=' + formData.from +
+    '&destination=' + formData.to +
+    '&one_way=true&token=' + API_KEY;
+  
+  //Старая строка, работает и без хироку
+  //getData(proxy + calendar + requestData, (response)
+  getData(calendar + requestData, (response) => {
+    // const cheapTicket = JSON.parse(data).best_prices.filter((item) => {
+    //   return item.depart_date === '2020-12-25'
+    // })
+    renderCheap(response, formData.when)
+  });
+});
 //-----------ВЫЗОВЫ ФУНКЦИЙ------------------*/
 //Если работать через прокси, то нужна эта строчка
 // getData(proxy + cityesApi, (data) => 
@@ -136,11 +180,4 @@ getData(cityesApi, (data) => {
       //Фильтруем на пустые значения из полученных данных JSON
             return item.name
     });
-  console.log(city);
 });
-getData(proxy + calendar + "?depart_date=2020-12-25&origin=SVX&destination=KGD&one_way=true&token=" + API_KEY, (data) => {
-  const cheapTicket = JSON.parse(data).best_prices.filter((item) => {
-    return item.depart_date === '2020-12-25'
-  })
-  console.log(data)
-})
